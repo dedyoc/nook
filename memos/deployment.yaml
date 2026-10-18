@@ -4,7 +4,7 @@ kind: Deployment
 metadata:
   name: memos
 spec:
-  replicas: 0   # restore drill 2026-10-18: Memos stopped for the database swap; revert to 1
+  replicas: 1
   strategy:
     type: Recreate   # one SQLite writer: never run the old and new pod side by side
   selector:
