@@ -1,0 +1,9 @@
+# kustomization.yaml (repo root)
+# Personal apps on node0: one tenant, one namespace (dedyoc/homelab ADR-036).
+# The Namespace itself is owned by dedyoc/homelab (apps/tenants/nook/), not by this repo.
+# Adding an app: a new directory with its own kustomization.yaml, plus one line below.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: nook
+resources:
+  - memos/

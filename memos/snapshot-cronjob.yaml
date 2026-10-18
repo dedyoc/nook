@@ -1,0 +1,64 @@
+# memos/snapshot-cronjob.yaml
+# Consistent copy of the live WAL-mode database, taken before restic's 03:00 run (homelab ADR-038).
+# Uses Python's sqlite3.backup(): SQLite's online backup API, the same one the sqlite3 CLI's
+# .backup uses, from an official image. Restore from backup/memos.db, not memos_prod.db.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: memos-snapshot
+spec:
+  schedule: "30 2 * * *"
+  timeZone: Asia/Ho_Chi_Minh
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600   # node down at 02:30 but up by 03:30: still run
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 300
+      template:
+        spec:
+          restartPolicy: Never
+          enableServiceLinks: false
+          securityContext:
+            # Same UID as Memos: reading a WAL database needs write access to its -shm file.
+            runAsUser: 10001
+            runAsGroup: 10001
+            runAsNonRoot: true
+            seccompProfile: {type: RuntimeDefault}
+          containers:
+            - name: snapshot
+              image: python:3.14.8-alpine3.24@sha256:f6a589d43c42b9e7f7dc67a12d37132491f362859a5d750607710cc56da3bc72
+              command: [python3, -c]
+              args:
+                - |
+                  import os, sqlite3, sys
+                  d = "/var/opt/memos/backup"
+                  tmp, out = d + "/memos.db.tmp", d + "/memos.db"
+                  os.makedirs(d, exist_ok=True)
+                  if os.path.exists(tmp):
+                      os.remove(tmp)
+                  # mode=rw: fail if the database is missing instead of creating an empty one.
+                  src = sqlite3.connect("file:/var/opt/memos/memos_prod.db?mode=rw", uri=True, timeout=30)
+                  dst = sqlite3.connect(tmp)
+                  src.backup(dst)
+                  src.close()
+                  dst.execute("PRAGMA journal_mode=DELETE")   # the copy is one self-contained file
+                  result = dst.execute("PRAGMA integrity_check").fetchone()[0]
+                  dst.close()
+                  if result != "ok":
+                      sys.exit("integrity_check failed: " + result)
+                  os.replace(tmp, out)   # atomic: restic never sees a half-written copy
+                  print("snapshot ok:", out, os.path.getsize(out), "bytes")
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities: {drop: [ALL]}
+              volumeMounts:
+                - {name: data, mountPath: /var/opt/memos}
+              resources:
+                requests: {cpu: 10m, memory: 16Mi}
+                limits: {memory: 64Mi}
+          volumes:
+            - name: data
+              persistentVolumeClaim: {claimName: memos-data}

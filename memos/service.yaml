@@ -1,0 +1,9 @@
+# memos/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: memos
+spec:
+  selector: {app: memos}
+  ports:
+    - {name: http, port: 5230, targetPort: http}

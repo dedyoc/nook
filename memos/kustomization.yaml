@@ -1,0 +1,10 @@
+# memos/kustomization.yaml
+# Memos: notes inbox (homelab ADR-035), reached at http://node0.scylla-wezen.ts.net/ (ADR-037).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - pvc.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - snapshot-cronjob.yaml

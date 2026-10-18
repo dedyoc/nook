@@ -1,0 +1,15 @@
+# memos/pvc.yaml
+# local-path reclaim policy is Delete: deleting this PVC deletes the notes on disk.
+# Prune=false: if this object is renamed or removed from Git, ArgoCD leaves the old PVC (and its
+# data) in place instead of pruning it. Removing the whole tenant still deletes it with the Namespace.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: memos-data
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  storageClassName: local-path   # explicit: "default StorageClass" is mutable cluster state
+  accessModes: [ReadWriteOnce]   # two pods may mount it: Memos and the snapshot Job, same node
+  resources:
+    requests: {storage: 2Gi}     # local-path doesn't enforce this; it's a label, not a quota
