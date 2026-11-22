@@ -101,6 +101,7 @@ pages:
       - size: small
         widgets:
           # Pinned images in this repo and homelab: new releases worth reading the notes of.
+          # Only repos that publish GitHub Releases (apache/spark and apache/flink tag only).
           - type: releases
             cache: 1d
             repositories:
@@ -115,7 +116,5 @@ pages:
               - sissbruecker/linkding
               - go-vikunja/vikunja
               - glanceapp/glance
-              - apache/spark
               - apache/iceberg
-              - apache/flink
               - ClickHouse/ClickHouse
