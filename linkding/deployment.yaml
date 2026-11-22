@@ -1,0 +1,40 @@
+# Linkding: bookmarks, SQLite (homelab ADR-045). bootstrap.sh runs migrations and chowns data/
+# as root, then uwsgi drops to www-data (82): root is kept to a minimal capability set.
+# No sign-up page: create the user with `manage.py createsuperuser` (docs/apps.md).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: linkding
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: linkding}
+  template:
+    metadata:
+      labels: {app: linkding}
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: linkding
+          image: sissbruecker/linkding:1.47.0-alpine@sha256:04e67acd04f1f1b3edd1bdd36fcf0dd5efaf8cdd99444e14be92c608575fa87a
+          # LD_CSRF_TRUSTED_ORIGINS: set with the Ingress (https://<host>), or logins fail CSRF.
+          ports: [{name: http, containerPort: 9090}]
+          readinessProbe:
+            httpGet: {path: /health, port: http}
+            periodSeconds: 15
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+              add: [CHOWN, SETUID, SETGID, FOWNER, DAC_OVERRIDE]   # tested locally 2026-11-22
+          volumeMounts:
+            - {name: data, mountPath: /etc/linkding/data}
+          resources:   # ~150Mi idle: 4 uwsgi workers + the task runner
+            requests: {cpu: 10m, memory: 160Mi}
+            limits: {memory: 384Mi}
+      volumes:
+        - name: data
+          persistentVolumeClaim: {claimName: linkding-data}

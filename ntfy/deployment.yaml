@@ -1,0 +1,47 @@
+# ntfy: push notifications to the phone/laptop (homelab ADR-045). No auth: only tailnet devices
+# with a grant can reach Traefik. Topic names are the only "secret"; don't publish anything private.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ntfy
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: ntfy}
+  template:
+    metadata:
+      labels: {app: ntfy}
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        runAsUser: 10003            # any UID works; the image has no USER
+        runAsGroup: 10003
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: ntfy
+          image: binwiederhier/ntfy:v2.38.1@sha256:038da2be5e668fee6d36a62884eea48975e1b71c29a56964e5298c1b9165a573
+          args: [serve]
+          env:
+            - {name: NTFY_LISTEN_HTTP, value: ":8080"}   # unprivileged port: no NET_BIND_SERVICE
+            - {name: NTFY_CACHE_FILE, value: /var/lib/ntfy/cache.db}
+            - {name: NTFY_CACHE_DURATION, value: 72h}
+            - {name: NTFY_BEHIND_PROXY, value: "true"}
+            # NTFY_BASE_URL: set with the Ingress, once the domain exists.
+          ports: [{name: http, containerPort: 8080}]
+          readinessProbe:
+            httpGet: {path: /v1/health, port: http}
+            periodSeconds: 15
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: data, mountPath: /var/lib/ntfy}
+          resources:   # ~16Mi idle (docker stats, 2026-11-22)
+            requests: {cpu: 5m, memory: 32Mi}
+            limits: {memory: 128Mi}
+      volumes:
+        - name: data
+          persistentVolumeClaim: {claimName: ntfy-data}

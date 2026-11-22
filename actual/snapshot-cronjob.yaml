@@ -1,0 +1,46 @@
+# Nightly consistent copy of actual's SQLite databases into .snapshots/ on its own volume,
+# before restic's 03:00 run (homelab ADR-045). Script: _snapshot/snapshot.py (ConfigMap).
+# Runs as 1001:1001: the image's 'actual' user, which the Deployment also runs as.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: actual-snapshot
+spec:
+  schedule: "35 2 * * *"
+  timeZone: Asia/Ho_Chi_Minh
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 300
+      template:
+        spec:
+          restartPolicy: Never
+          enableServiceLinks: false
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 1001
+            runAsNonRoot: true
+            seccompProfile: {type: RuntimeDefault}
+          containers:
+            - name: snapshot
+              image: python:3.14.8-alpine3.24@sha256:f6a589d43c42b9e7f7dc67a12d37132491f362859a5d750607710cc56da3bc72
+              command: [python3, /script/snapshot.py, /data]
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities: {drop: [ALL]}
+              volumeMounts:
+                - {name: data, mountPath: /data}
+                - {name: script, mountPath: /script, readOnly: true}
+              resources:
+                requests: {cpu: 10m, memory: 16Mi}
+                limits: {memory: 64Mi}
+          volumes:
+            - name: data
+              persistentVolumeClaim: {claimName: actual-data}
+            - name: script
+              configMap: {name: sqlite-snapshot}

@@ -1,0 +1,42 @@
+# Glance start page (homelab ADR-045): config is glance.yml in this directory, via a
+# configMapGenerator, so an edit changes the ConfigMap's name and rolls this pod.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: glance
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: glance}
+  template:
+    metadata:
+      labels: {app: glance}
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        runAsUser: 65534            # nobody: Glance writes nothing
+        runAsGroup: 65534
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: glance
+          image: glanceapp/glance:v0.8.8@sha256:4d7445bc7971836858ffddee5d7501f1efbabb6e694a45b1dde1a789bb1943bb
+          env:
+            # Used only to build links in glance.yml. Placeholder until the domain is bought.
+            - {name: NOOK_DOMAIN, value: nook.invalid}
+          ports: [{name: http, containerPort: 8080}]
+          readinessProbe:
+            httpGet: {path: /api/healthz, port: http}
+            periodSeconds: 15
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: config, mountPath: /app/config, readOnly: true}
+          resources:   # ~8Mi idle (docker stats, 2026-11-22); widget caches grow it a little
+            requests: {cpu: 5m, memory: 32Mi}
+            limits: {memory: 128Mi}
+      volumes:
+        - name: config
+          configMap: {name: glance-config}

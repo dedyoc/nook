@@ -1,0 +1,52 @@
+# Vikunja: tasks / kanban, SQLite (homelab ADR-045). Registration is open until you have signed
+# up; then set VIKUNJA_SERVICE_ENABLEREGISTRATION to "false" here (docs/apps.md).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vikunja
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: vikunja}
+  template:
+    metadata:
+      labels: {app: vikunja}
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        runAsUser: 1000             # the image's USER
+        runAsGroup: 1000
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: vikunja
+          image: vikunja/vikunja:2.8.0@sha256:35d937baf3b5d5803bed6b9e11d007448b7b536df9e4346dc35551e1072636c3
+          env:
+            - {name: VIKUNJA_DATABASE_PATH, value: /data/vikunja.db}
+            - {name: VIKUNJA_FILES_BASEPATH, value: /data/files}
+            - {name: VIKUNJA_SERVICE_TIMEZONE, value: Asia/Ho_Chi_Minh}
+            - {name: VIKUNJA_SERVICE_ENABLEREGISTRATION, value: "true"}
+            # Placeholder until the domain exists; required while CORS is on (the default).
+            - {name: VIKUNJA_SERVICE_PUBLICURL, value: "http://vikunja.nook.svc/"}
+            # Signs login tokens. Without it Vikunja picks a random one per start, so every
+            # restart logs you out. Optional: create Secret vikunja-secret by hand (docs/apps.md).
+            - name: VIKUNJA_SERVICE_SECRET
+              valueFrom:
+                secretKeyRef: {name: vikunja-secret, key: secret, optional: true}
+          ports: [{name: http, containerPort: 3456}]
+          readinessProbe:
+            httpGet: {path: /api/v1/info, port: http}
+            periodSeconds: 15
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: data, mountPath: /data}
+          resources:   # ~44Mi idle (docker stats, 2026-11-22)
+            requests: {cpu: 10m, memory: 64Mi}
+            limits: {memory: 256Mi}
+      volumes:
+        - name: data
+          persistentVolumeClaim: {claimName: vikunja-data}

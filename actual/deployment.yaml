@@ -1,0 +1,39 @@
+# Actual Budget server (homelab ADR-045). Needs HTTPS in the browser (secure context), so it is
+# only usable once the Ingress + certificate exist; until then: kubectl port-forward (docs/apps.md).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: actual
+spec:
+  replicas: 1
+  strategy: {type: Recreate}      # one SQLite writer
+  selector:
+    matchLabels: {app: actual}
+  template:
+    metadata:
+      labels: {app: actual}
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        runAsUser: 1001             # the image's 'actual' user; it starts as root otherwise
+        runAsGroup: 1001
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: actual
+          image: actualbudget/actual-server:26.11.0-alpine@sha256:01ac24a51c6f585aba287c1bf1e96fcda46ab16a05952817c637415213251aa3
+          ports: [{name: http, containerPort: 5006}]
+          readinessProbe:
+            httpGet: {path: /health, port: http}
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: data, mountPath: /data}   # default ACTUAL_DATA_DIR
+          resources:   # 257Mi at start, ~50Mi idle (docker stats, 2026-11-22)
+            requests: {cpu: 10m, memory: 128Mi}
+            limits: {memory: 512Mi}
+      volumes:
+        - name: data
+          persistentVolumeClaim: {claimName: actual-data}

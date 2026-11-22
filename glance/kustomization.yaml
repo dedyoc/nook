@@ -1,0 +1,9 @@
+# Glance: start page, stateless (homelab ADR-045). Runbook: homelab docs/apps.md.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - deployment.yaml
+  - service.yaml
+configMapGenerator:
+  - name: glance-config
+    files: [glance.yml]

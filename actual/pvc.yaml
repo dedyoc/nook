@@ -1,0 +1,14 @@
+# Actual's server-files/ (account.sqlite) and user-files/ (budget files, sync DBs).
+# local-path reclaim policy is Delete: deleting this PVC deletes the data on disk.
+# Prune=false: renaming or removing this object in Git leaves the old PVC in place (as Memos).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: actual-data
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  storageClassName: local-path
+  accessModes: [ReadWriteOnce]   # the app and its snapshot Job: two pods, same node
+  resources:
+    requests: {storage: 2Gi}   # local-path doesn't enforce this

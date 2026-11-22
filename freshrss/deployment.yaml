@@ -1,0 +1,44 @@
+# FreshRSS: RSS reader, SQLite (homelab ADR-045). The entrypoint must start as root (it edits
+# php.ini/Apache config, runs crond, fixes data/ permissions) before Apache drops to 'apache'.
+# Root is kept to a minimal capability set instead. First visit: install wizard, choose SQLite.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: freshrss
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: freshrss}
+  template:
+    metadata:
+      labels: {app: freshrss}
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: freshrss
+          image: freshrss/freshrss:1.30.4-alpine@sha256:840765ea01fbaa1ea5b59f298878d224f62a4e83f8bba74d1a192ccd1d13669a
+          env:
+            - {name: TZ, value: Asia/Ho_Chi_Minh}
+            - {name: CRON_MIN, value: "13,43"}           # refresh feeds twice an hour
+            - {name: LISTEN, value: "0.0.0.0:8080"}      # unprivileged port: no NET_BIND_SERVICE
+            - {name: TRUSTED_PROXY, value: 10.42.0.0/16} # Traefik is a pod
+          ports: [{name: http, containerPort: 8080}]
+          readinessProbe:
+            httpGet: {path: /i/, port: http}
+            periodSeconds: 15
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+              add: [CHOWN, SETUID, SETGID, FOWNER, DAC_OVERRIDE]   # tested locally 2026-11-22
+          volumeMounts:
+            - {name: data, mountPath: /var/www/FreshRSS/data}
+          resources:   # ~18Mi idle; PHP workers grow during refresh
+            requests: {cpu: 10m, memory: 64Mi}
+            limits: {memory: 256Mi}
+      volumes:
+        - name: data
+          persistentVolumeClaim: {claimName: freshrss-data}

@@ -1,0 +1,121 @@
+# Glance start page (homelab ADR-045). Schema: github.com/glanceapp/glance docs/configuration.md
+# (v0.8.8). ${NOOK_DOMAIN} comes from the Deployment's env. This repo is PUBLIC: nothing private here.
+# Editing: change this file, push; the configMapGenerator hash rolls the pod (~3 min via ArgoCD).
+server:
+  port: 8080
+  proxied: true
+
+theme:
+  background-color: 225 14 15
+  primary-color: 157 47 65
+  contrast-multiplier: 1.1
+
+pages:
+  - name: Home
+    hide-desktop-navigation: true
+    columns:
+      - size: small
+        widgets:
+          - type: clock
+            hour-format: 24h
+            timezones:
+              - {timezone: UTC, label: UTC}
+          - type: calendar
+            first-day-of-week: monday
+          - type: weather
+            location: Ho Chi Minh City, Vietnam
+            units: metric
+            hour-format: 24h
+
+      - size: full
+        widgets:
+          - type: search
+            search-engine: duckduckgo
+            autofocus: true
+            bangs:
+              - {title: GitHub, shortcut: "!gh", url: "https://github.com/search?q={QUERY}"}
+              - {title: Kubernetes docs, shortcut: "!k8s", url: "https://kubernetes.io/search/?q={QUERY}"}
+              - {title: Fedora packages, shortcut: "!fp", url: "https://packages.fedoraproject.org/search?query={QUERY}"}
+
+          - type: bookmarks
+            groups:
+              - title: nook
+                same-tab: true
+                links:
+                  - {title: Actual Budget, url: "https://actual.${NOOK_DOMAIN}/", icon: "sh:actual-budget"}
+                  - {title: Memos, url: "https://memos.${NOOK_DOMAIN}/", icon: "sh:memos"}
+                  - {title: Vikunja, url: "https://vikunja.${NOOK_DOMAIN}/", icon: "sh:vikunja"}
+                  - {title: FreshRSS, url: "https://freshrss.${NOOK_DOMAIN}/", icon: "sh:freshrss"}
+                  - {title: Linkding, url: "https://linkding.${NOOK_DOMAIN}/", icon: "sh:linkding"}
+                  - {title: Uptime Kuma, url: "https://uptime.${NOOK_DOMAIN}/", icon: "sh:uptime-kuma"}
+                  - {title: ntfy, url: "https://ntfy.${NOOK_DOMAIN}/", icon: "sh:ntfy"}
+                  - {title: IT-Tools, url: "https://it-tools.${NOOK_DOMAIN}/", icon: "sh:it-tools"}
+                  - {title: Excalidraw, url: "https://draw.${NOOK_DOMAIN}/", icon: "sh:excalidraw"}
+              - title: Code
+                links:
+                  - {title: homelab, url: "https://github.com/dedyoc/homelab"}
+                  - {title: nook, url: "https://github.com/dedyoc/nook"}
+                  - {title: Tailscale admin, url: "https://login.tailscale.com/admin/machines"}
+
+          # Checked from inside the cluster (Service DNS), so it works before any Ingress exists.
+          - type: monitor
+            cache: 1m
+            title: nook
+            style: compact
+            sites:
+              - {title: Actual Budget, url: "https://actual.${NOOK_DOMAIN}/", check-url: "http://actual/health", icon: "sh:actual-budget"}
+              - {title: Memos, url: "https://memos.${NOOK_DOMAIN}/", check-url: "http://memos:5230/healthz", icon: "sh:memos"}
+              - {title: Vikunja, url: "https://vikunja.${NOOK_DOMAIN}/", check-url: "http://vikunja/api/v1/info", icon: "sh:vikunja"}
+              - {title: FreshRSS, url: "https://freshrss.${NOOK_DOMAIN}/", check-url: "http://freshrss/i/", icon: "sh:freshrss"}
+              - {title: Linkding, url: "https://linkding.${NOOK_DOMAIN}/", check-url: "http://linkding/health", icon: "sh:linkding"}
+              - {title: Uptime Kuma, url: "https://uptime.${NOOK_DOMAIN}/", check-url: "http://uptime-kuma/", alt-status-codes: [302], icon: "sh:uptime-kuma"}
+              - {title: ntfy, url: "https://ntfy.${NOOK_DOMAIN}/", check-url: "http://ntfy/v1/health", icon: "sh:ntfy"}
+              - {title: IT-Tools, url: "https://it-tools.${NOOK_DOMAIN}/", check-url: "http://it-tools/", icon: "sh:it-tools"}
+              - {title: Excalidraw, url: "https://draw.${NOOK_DOMAIN}/", check-url: "http://excalidraw/", icon: "sh:excalidraw"}
+
+          - type: group
+            widgets:
+              - type: hacker-news
+              - type: lobsters
+
+          - type: rss
+            title: Engineering blogs
+            style: detailed-list
+            limit: 15
+            collapse-after: 6
+            cache: 6h
+            feeds:
+              - {url: "https://www.dataengineeringweekly.com/feed", title: Data Engineering Weekly}
+              - {url: "https://seattledataguy.substack.com/feed", title: SeattleDataGuy}
+              - {url: "https://netflixtechblog.com/feed", title: Netflix Tech}
+              - {url: "https://engineering.fb.com/feed/", title: Meta Engineering}
+              - {url: "https://clickhouse.com/rss.xml", title: ClickHouse}
+              - {url: "https://flink.apache.org/index.xml", title: Flink}
+              - {url: "https://kubernetes.io/feed.xml", title: Kubernetes}
+              - {url: "https://tailscale.com/blog/index.xml", title: Tailscale}
+              - {url: "https://jvns.ca/atom.xml", title: Julia Evans}
+              - {url: "https://www.brendangregg.com/blog/rss.xml", title: Brendan Gregg}
+              - {url: "https://martinfowler.com/feed.atom", title: Martin Fowler}
+              - {url: "https://selfh.st/rss/", title: selfh.st}
+
+      - size: small
+        widgets:
+          # Pinned images in this repo and homelab: new releases worth reading the notes of.
+          - type: releases
+            cache: 1d
+            repositories:
+              - k3s-io/k3s
+              - argoproj/argo-cd
+              - traefik/traefik
+              - actualbudget/actual
+              - usememos/memos
+              - louislam/uptime-kuma
+              - binwiederhier/ntfy
+              - FreshRSS/FreshRSS
+              - sissbruecker/linkding
+              - go-vikunja/vikunja
+              - glanceapp/glance
+              - apache/spark
+              - apache/iceberg
+              - apache/flink
+              - ClickHouse/ClickHouse

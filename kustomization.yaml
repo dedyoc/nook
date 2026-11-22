@@ -1,9 +1,23 @@
 # kustomization.yaml (repo root)
-# Personal apps on node0: one tenant, one namespace (dedyoc/homelab ADR-036).
+# Personal apps on node0: one tenant, one namespace (dedyoc/homelab ADR-036, ADR-045).
 # The Namespace itself is owned by dedyoc/homelab (apps/tenants/nook/), not by this repo.
 # Adding an app: a new directory with its own kustomization.yaml, plus one line below.
+# Per-app runbook (URL, data, backup, restore, upgrade): dedyoc/homelab docs/apps.md.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: nook
 resources:
   - memos/
+  - glance/
+  - actual/
+  - uptime-kuma/
+  - ntfy/
+  - freshrss/
+  - linkding/
+  - vikunja/
+  - it-tools/
+  - excalidraw/
+# Shared by every <app>-snapshot CronJob (homelab ADR-045). Memos keeps its own inline script.
+configMapGenerator:
+  - name: sqlite-snapshot
+    files: [_snapshot/snapshot.py]
