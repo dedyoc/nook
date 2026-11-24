@@ -1,5 +1,3 @@
-# Uptime Kuma: checks every nook app from inside the cluster and pushes alerts to ntfy
-# (homelab ADR-045). First visit: pick SQLite, then create the admin account.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,7 +19,7 @@ spec:
         seccompProfile: {type: RuntimeDefault}
       containers:
         - name: uptime-kuma
-          # -slim: no bundled MariaDB/Chromium; -rootless: USER node.
+          # -slim leaves out the bundled MariaDB and Chromium; -rootless runs as 'node'.
           image: louislam/uptime-kuma:2.5.12-slim-rootless@sha256:212d2131952eded9b2508620455f15f5c2c85c262aafd23b97a7447c53e1d1bc
           ports: [{name: http, containerPort: 3001}]
           readinessProbe:
@@ -32,7 +30,7 @@ spec:
             capabilities: {drop: [ALL]}
           volumeMounts:
             - {name: data, mountPath: /app/data}
-          resources:   # ~110Mi idle, no monitors (docker stats, 2026-11-22)
+          resources:
             requests: {cpu: 10m, memory: 128Mi}
             limits: {memory: 384Mi}
       volumes:

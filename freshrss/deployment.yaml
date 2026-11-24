@@ -1,6 +1,5 @@
-# FreshRSS: RSS reader, SQLite (homelab ADR-045). The entrypoint must start as root (it edits
-# php.ini/Apache config, runs crond, fixes data/ permissions) before Apache drops to 'apache'.
-# Root is kept to a minimal capability set instead. First visit: install wizard, choose SQLite.
+# The entrypoint needs root (it edits the PHP and Apache config, runs crond and fixes data/
+# permissions) before Apache drops to 'apache'. So no runAsUser; capabilities are cut instead.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -33,10 +32,10 @@ spec:
             allowPrivilegeEscalation: false
             capabilities:
               drop: [ALL]
-              add: [CHOWN, SETUID, SETGID, FOWNER, DAC_OVERRIDE]   # tested locally 2026-11-22
+              add: [CHOWN, SETUID, SETGID, FOWNER, DAC_OVERRIDE]
           volumeMounts:
             - {name: data, mountPath: /var/www/FreshRSS/data}
-          resources:   # ~18Mi idle; PHP workers grow during refresh
+          resources:   # PHP workers grow while feeds refresh
             requests: {cpu: 10m, memory: 64Mi}
             limits: {memory: 256Mi}
       volumes:

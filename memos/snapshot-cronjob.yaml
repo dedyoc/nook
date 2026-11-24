@@ -1,7 +1,5 @@
-# memos/snapshot-cronjob.yaml
-# Consistent copy of the live WAL-mode database, taken before restic's 03:00 run (homelab ADR-038).
-# Uses Python's sqlite3.backup(): SQLite's online backup API, the same one the sqlite3 CLI's
-# .backup uses, from an official image. Restore from backup/memos.db, not memos_prod.db.
+# Older than _snapshot/snapshot.py and kept as is: writes backup/memos.db, not .snapshots/.
+# Restore from backup/memos.db, never from the live memos_prod.db.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -10,7 +8,7 @@ spec:
   schedule: "30 2 * * *"
   timeZone: Asia/Ho_Chi_Minh
   concurrencyPolicy: Forbid
-  startingDeadlineSeconds: 3600   # node down at 02:30 but up by 03:30: still run
+  startingDeadlineSeconds: 3600   # if the node was down at 02:30, still run once it's back
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
   jobTemplate:
@@ -22,8 +20,7 @@ spec:
           restartPolicy: Never
           enableServiceLinks: false
           securityContext:
-            # Same UID as Memos: reading a WAL database needs write access to its -shm file.
-            runAsUser: 10001
+            runAsUser: 10001              # same user as Memos
             runAsGroup: 10001
             runAsNonRoot: true
             seccompProfile: {type: RuntimeDefault}

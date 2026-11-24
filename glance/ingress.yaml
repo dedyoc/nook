@@ -1,6 +1,5 @@
-# Glance is the start page (homelab ADR-046, superseding ADR-037's Memos-on-/): at
-# https://home.dedyoc.com/, and on / of any other name that reaches Traefik (the tailnet IP,
-# node0's ts.net name). Host rules elsewhere win over the host-less rule.
+# The second rule has no host, so Glance also answers on any name without its own rule
+# (the bare tailnet IP, the ts.net name). Rules with a host always win over it.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

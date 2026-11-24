@@ -1,5 +1,5 @@
-# ntfy: push notifications to the phone/laptop (homelab ADR-045). No auth: only tailnet devices
-# with a grant can reach Traefik. Topic names are the only "secret"; don't publish anything private.
+# No auth: only my tailnet devices can reach it. Anyone who can reach it can read a topic by
+# guessing its name, so use unguessable names and never send anything private.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -39,7 +39,7 @@ spec:
             capabilities: {drop: [ALL]}
           volumeMounts:
             - {name: data, mountPath: /var/lib/ntfy}
-          resources:   # ~16Mi idle (docker stats, 2026-11-22)
+          resources:
             requests: {cpu: 5m, memory: 32Mi}
             limits: {memory: 128Mi}
       volumes:

@@ -1,6 +1,3 @@
-# Nightly consistent copy of linkding's SQLite databases into .snapshots/ on its own volume,
-# before restic's 03:00 run (homelab ADR-045). Script: _snapshot/snapshot.py (ConfigMap).
-# Runs as 82:82: www-data, which uwsgi drops to and bootstrap.sh chowns data/ to.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -21,7 +18,7 @@ spec:
           restartPolicy: Never
           enableServiceLinks: false
           securityContext:
-            runAsUser: 82
+            runAsUser: 82                 # www-data, which uwsgi runs as
             runAsGroup: 82
             runAsNonRoot: true
             seccompProfile: {type: RuntimeDefault}

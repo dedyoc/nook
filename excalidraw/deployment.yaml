@@ -1,5 +1,5 @@
-# Excalidraw: whiteboard; drawings live in the browser (localStorage), export to keep them. Upstream publishes only :latest, so the digest is the pin (homelab ADR-045). Static files served by the image's nginx; no state, no volume.
-# nginx's master starts as root and drops to 'nginx': root is kept to the capabilities it needs.
+# nginx starts as root and drops to its own user, so instead of runAsUser the container
+# keeps only the capabilities it needs.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,10 +17,10 @@ spec:
         seccompProfile: {type: RuntimeDefault}
       containers:
         - name: excalidraw
+          # Upstream only publishes :latest, so the digest is the real pin.
           image: excalidraw/excalidraw:latest@sha256:f7ee194addd607bf831d2af0f0a34463dd4225e426cf35199ef0b12a803398e9
           env:
-            # The image's 30-tune-worker-processes.sh sets worker_processes from the CPU limit
-            # below (1), instead of "auto" = 16 workers on node0.
+            # Size nginx workers from the CPU limit (1) instead of the host's 16 cores.
             - {name: NGINX_ENTRYPOINT_WORKER_PROCESSES_AUTOTUNE, value: "1"}
           ports: [{name: http, containerPort: 80}]
           readinessProbe:
@@ -30,7 +30,7 @@ spec:
             allowPrivilegeEscalation: false
             capabilities:
               drop: [ALL]
-              add: [CHOWN, SETUID, SETGID, NET_BIND_SERVICE]   # tested locally 2026-11-22
-          resources:   # ~9Mi with one worker (docker stats, 2026-11-22)
+              add: [CHOWN, SETUID, SETGID, NET_BIND_SERVICE]
+          resources:
             requests: {cpu: 5m, memory: 16Mi}
-            limits: {cpu: 500m, memory: 64Mi}   # the CPU limit exists only to size nginx
+            limits: {cpu: 500m, memory: 64Mi}   # the CPU limit is only there to size nginx

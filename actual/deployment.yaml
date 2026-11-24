@@ -1,12 +1,11 @@
-# Actual Budget server (homelab ADR-045), at https://actual.home.dedyoc.com/ (ADR-046). Needs HTTPS
-# in the browser (secure context): plain http:// to it won't work.
+# Only works over https://: the web client needs a secure context.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: actual
 spec:
   replicas: 1
-  strategy: {type: Recreate}      # one SQLite writer
+  strategy: {type: Recreate}
   selector:
     matchLabels: {app: actual}
   template:
@@ -15,7 +14,7 @@ spec:
     spec:
       enableServiceLinks: false
       securityContext:
-        runAsUser: 1001             # the image's 'actual' user; it starts as root otherwise
+        runAsUser: 1001             # the image's 'actual' user; it would start as root otherwise
         runAsGroup: 1001
         runAsNonRoot: true
         seccompProfile: {type: RuntimeDefault}
@@ -31,7 +30,7 @@ spec:
             capabilities: {drop: [ALL]}
           volumeMounts:
             - {name: data, mountPath: /data}   # default ACTUAL_DATA_DIR
-          resources:   # 257Mi at start, ~50Mi idle (docker stats, 2026-11-22)
+          resources:   # peaks around 250Mi at startup
             requests: {cpu: 10m, memory: 128Mi}
             limits: {memory: 512Mi}
       volumes:

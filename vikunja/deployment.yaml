@@ -1,4 +1,3 @@
-# Vikunja: tasks / kanban, SQLite (homelab ADR-045). Registration is closed (docs/apps.md).
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -25,12 +24,12 @@ spec:
             - {name: VIKUNJA_DATABASE_PATH, value: /data/vikunja.db}
             - {name: VIKUNJA_FILES_BASEPATH, value: /data/files}
             - {name: VIKUNJA_SERVICE_TIMEZONE, value: Asia/Ho_Chi_Minh}
-            # Off since 2026-11-24, after the owner registered. Re-enable briefly to add a user.
+            # Turn on briefly to add a user, then off again.
             - {name: VIKUNJA_SERVICE_ENABLEREGISTRATION, value: "false"}
             # Required while CORS is on (the default).
             - {name: VIKUNJA_SERVICE_PUBLICURL, value: "https://vikunja.home.dedyoc.com/"}
-            # Signs login tokens. Without it Vikunja picks a random one per start, so every
-            # restart logs you out. Optional: create Secret vikunja-secret by hand (docs/apps.md).
+            # Signs login tokens. Without it every restart logs you out. The Secret is created
+            # by hand, never committed; optional, so the pod still starts without it.
             - name: VIKUNJA_SERVICE_SECRET
               valueFrom:
                 secretKeyRef: {name: vikunja-secret, key: secret, optional: true}
@@ -44,7 +43,7 @@ spec:
             capabilities: {drop: [ALL]}
           volumeMounts:
             - {name: data, mountPath: /data}
-          resources:   # ~44Mi idle (docker stats, 2026-11-22)
+          resources:
             requests: {cpu: 10m, memory: 64Mi}
             limits: {memory: 256Mi}
       volumes:

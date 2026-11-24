@@ -1,5 +1,3 @@
-# Glance start page (homelab ADR-045): config is glance.yml in this directory, via a
-# configMapGenerator, so an edit changes the ConfigMap's name and rolls this pod.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -22,7 +20,7 @@ spec:
         - name: glance
           image: glanceapp/glance:v0.8.8@sha256:4d7445bc7971836858ffddee5d7501f1efbabb6e694a45b1dde1a789bb1943bb
           env:
-            # Used only to build links in glance.yml (homelab ADR-046).
+            # Only used to build the links in glance.yml.
             - {name: NOOK_DOMAIN, value: home.dedyoc.com}
           ports: [{name: http, containerPort: 8080}]
           readinessProbe:
@@ -34,7 +32,7 @@ spec:
             capabilities: {drop: [ALL]}
           volumeMounts:
             - {name: config, mountPath: /app/config, readOnly: true}
-          resources:   # ~8Mi idle (docker stats, 2026-11-22); widget caches grow it a little
+          resources:   # widget caches grow it a little over time
             requests: {cpu: 5m, memory: 32Mi}
             limits: {memory: 128Mi}
       volumes:

@@ -1,4 +1,4 @@
-# Excalidraw: whiteboard, stateless (homelab ADR-045). Runbook: homelab docs/apps.md.
+# Excalidraw: whiteboard. Drawings live in the browser, so there's no volume.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:

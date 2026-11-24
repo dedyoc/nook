@@ -1,4 +1,4 @@
-# IT-Tools: developer utilities, stateless (homelab ADR-045). Runbook: homelab docs/apps.md.
+# IT-Tools: developer utilities that run in the browser. No state.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:

@@ -1,4 +1,4 @@
-# FreshRSS: RSS reader (homelab ADR-045). Runbook: homelab docs/apps.md.
+# FreshRSS: RSS reader.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:

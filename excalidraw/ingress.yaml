@@ -1,5 +1,3 @@
-# https://draw.home.dedyoc.com/ (homelab ADR-046). No tls: block needed: K3s' websecure
-# entrypoint has TLS on, and Traefik's default TLSStore serves the *.home.dedyoc.com wildcard.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

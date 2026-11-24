@@ -1,4 +1,4 @@
-# Uptime Kuma: uptime checks + alerts (homelab ADR-045). Runbook: homelab docs/apps.md.
+# Uptime Kuma: uptime checks, alerts go to ntfy.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:

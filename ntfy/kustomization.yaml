@@ -1,4 +1,4 @@
-# ntfy: push notifications (homelab ADR-045). Runbook: homelab docs/apps.md.
+# ntfy: push notifications. Its volume is only a message cache, so no snapshot.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
