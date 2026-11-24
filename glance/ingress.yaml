@@ -1,0 +1,17 @@
+# Glance is the start page (homelab ADR-046, superseding ADR-037's Memos-on-/): at
+# https://home.dedyoc.com/, and on / of any other name that reaches Traefik (the tailnet IP,
+# node0's ts.net name). Host rules elsewhere win over the host-less rule.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: glance
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: home.dedyoc.com
+      http:
+        paths:
+          - {path: /, pathType: Prefix, backend: {service: {name: glance, port: {name: http}}}}
+    - http:
+        paths:
+          - {path: /, pathType: Prefix, backend: {service: {name: glance, port: {name: http}}}}

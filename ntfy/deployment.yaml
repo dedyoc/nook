@@ -28,7 +28,7 @@ spec:
             - {name: NTFY_CACHE_FILE, value: /var/lib/ntfy/cache.db}
             - {name: NTFY_CACHE_DURATION, value: 72h}
             - {name: NTFY_BEHIND_PROXY, value: "true"}
-            # NTFY_BASE_URL: set with the Ingress, once the domain exists.
+            - {name: NTFY_BASE_URL, value: "https://ntfy.home.dedyoc.com"}
           ports: [{name: http, containerPort: 8080}]
           readinessProbe:
             httpGet: {path: /v1/health, port: http}

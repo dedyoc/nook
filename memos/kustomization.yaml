@@ -1,5 +1,5 @@
 # memos/kustomization.yaml
-# Memos: notes inbox (homelab ADR-035), reached at http://node0.scylla-wezen.ts.net/ (ADR-037).
+# Memos: notes inbox (homelab ADR-035), at https://memos.home.dedyoc.com/ (ADR-046).
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:

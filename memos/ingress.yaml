@@ -1,5 +1,5 @@
-# memos/ingress.yaml
-# No host rule: Memos owns / on every name that reaches Traefik (homelab ADR-037).
+# https://memos.home.dedyoc.com/ (homelab ADR-046). Until 2026-11-24 Memos had no host rule and
+# owned / (ADR-037); / now belongs to Glance.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -7,7 +7,8 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - http:
+    - host: memos.home.dedyoc.com
+      http:
         paths:
           - path: /
             pathType: Prefix

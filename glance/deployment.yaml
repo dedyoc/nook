@@ -22,8 +22,8 @@ spec:
         - name: glance
           image: glanceapp/glance:v0.8.8@sha256:4d7445bc7971836858ffddee5d7501f1efbabb6e694a45b1dde1a789bb1943bb
           env:
-            # Used only to build links in glance.yml. Placeholder until the domain is bought.
-            - {name: NOOK_DOMAIN, value: nook.invalid}
+            # Used only to build links in glance.yml (homelab ADR-046).
+            - {name: NOOK_DOMAIN, value: home.dedyoc.com}
           ports: [{name: http, containerPort: 8080}]
           readinessProbe:
             httpGet: {path: /api/healthz, port: http}

@@ -1,0 +1,18 @@
+# https://freshrss.home.dedyoc.com/ (homelab ADR-046). No tls: block needed: K3s' websecure
+# entrypoint has TLS on, and Traefik's default TLSStore serves the *.home.dedyoc.com wildcard.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: freshrss
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: freshrss.home.dedyoc.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: freshrss
+                port: {name: http}

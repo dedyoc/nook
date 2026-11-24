@@ -1,5 +1,5 @@
-# Actual Budget server (homelab ADR-045). Needs HTTPS in the browser (secure context), so it is
-# only usable once the Ingress + certificate exist; until then: kubectl port-forward (docs/apps.md).
+# Actual Budget server (homelab ADR-045), at https://actual.home.dedyoc.com/ (ADR-046). Needs HTTPS
+# in the browser (secure context): plain http:// to it won't work.
 apiVersion: apps/v1
 kind: Deployment
 metadata:

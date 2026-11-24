@@ -20,7 +20,9 @@ spec:
       containers:
         - name: linkding
           image: sissbruecker/linkding:1.47.0-alpine@sha256:04e67acd04f1f1b3edd1bdd36fcf0dd5efaf8cdd99444e14be92c608575fa87a
-          # LD_CSRF_TRUSTED_ORIGINS: set with the Ingress (https://<host>), or logins fail CSRF.
+          env:
+            # Django rejects HTTPS form posts from an origin it doesn't trust (CSRF).
+            - {name: LD_CSRF_TRUSTED_ORIGINS, value: "https://linkding.home.dedyoc.com"}
           ports: [{name: http, containerPort: 9090}]
           readinessProbe:
             httpGet: {path: /health, port: http}

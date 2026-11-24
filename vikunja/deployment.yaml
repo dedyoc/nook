@@ -27,8 +27,8 @@ spec:
             - {name: VIKUNJA_FILES_BASEPATH, value: /data/files}
             - {name: VIKUNJA_SERVICE_TIMEZONE, value: Asia/Ho_Chi_Minh}
             - {name: VIKUNJA_SERVICE_ENABLEREGISTRATION, value: "true"}
-            # Placeholder until the domain exists; required while CORS is on (the default).
-            - {name: VIKUNJA_SERVICE_PUBLICURL, value: "http://vikunja.nook.svc/"}
+            # Required while CORS is on (the default).
+            - {name: VIKUNJA_SERVICE_PUBLICURL, value: "https://vikunja.home.dedyoc.com/"}
             # Signs login tokens. Without it Vikunja picks a random one per start, so every
             # restart logs you out. Optional: create Secret vikunja-secret by hand (docs/apps.md).
             - name: VIKUNJA_SERVICE_SECRET
